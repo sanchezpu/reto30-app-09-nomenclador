@@ -1,8 +1,9 @@
 # Nomenclador
 
-Generador de nomenclatura para campañas de Meta Ads y Google Ads. Defines tu convención una vez y
-la app devuelve los tres nombres —campaña, conjunto o grupo, y anuncio— ya formateados y listos
-para pegar en Ads Manager, con la cadena UTM que cuadra con ellos.
+Dos herramientas para montar una campaña antes de gastar un euro: un generador de nomenclatura que
+devuelve los tres nombres —campaña, conjunto o grupo, y anuncio— ya formateados para pegar en Ads
+Manager con la UTM que cuadra con ellos, y una calculadora que dice cuánto hay que invertir para
+llegar a la meta y si los números dan.
 
 **En vivo:** https://app09.reto.icebergmarketingdigital.com
 
@@ -50,6 +51,45 @@ práctica, no un límite oficial de la plataforma, y la interfaz lo dice.
 | **Generación en lote** | Se pegan listas de valores en los bloques que se quieran variar y salen todas las combinaciones (producto cartesiano), hasta 300. |
 | **Salida** | Copiar cada nombre por separado, los tres de una, o todos los del lote. Exportación a CSV con una fila por nivel: nombre, caracteres, parte visible, parte oculta, aviso y URL con UTM. |
 
+
+## Calculadora de presupuesto
+
+Segunda pestaña, mismo cliente. Se introducen la meta mensual, el ticket o valor del lead, el margen
+bruto, la conversión del destino, el CTR estimado y el CPC o CPM esperado; devuelve la inversión
+mensual y su equivalente diario, el ROAS de equilibrio y el proyectado, el coste máximo y el
+proyectado por resultado, y el volumen de impresiones, clics y conversiones.
+
+**Cada resultado enseña su fórmula con los números ya sustituidos**, porque estos paneles se enseñan
+a clientes y hay que poder defender cada cifra:
+
+```
+Inversión mensual   1.200,00 €    ← 1.250 clics × 0,96 € de CPC
+Coste máximo/lead     176,00 €    ← 320,00 € × 55 % de margen
+ROAS de equilibrio       1,82×    ← 1 ÷ 55 % de margen
+```
+
+### El semáforo mira dos cosas distintas
+
+1. **Rentabilidad**, que es aritmética pura: el coste por resultado proyectado frente al máximo que
+   deja cada resultado (`ticket × margen`). Si lo supera, la campaña pierde dinero por diseño.
+2. **Realismo**, frente a un rango de coste por resultado. Si el techo que puedes pagar está por
+   debajo del mínimo del rango, no compras ese resultado a ese precio ni con la campaña perfecta.
+
+El semáforo global toma el peor de los dos, y cuando sale rojo despeja las tres salidas: a cuánto
+habría que subir el ticket, el margen o la conversión para llegar al equilibrio.
+
+> **Los rangos de referencia son del usuario, no de la plataforma.** Ni Meta ni Google publican coste
+> por resultado por sector, así que no hay dato oficial que citar. La app trae cuatro rangos de
+> partida, marcados como estimación propia y editables, para poder contrastar con datos propios.
+
+El escenario se guarda junto a la convención, y **«Pasar al nomenclador»** deja la inversión como un
+bloque más del nombre (`…_1200EUR`), lo anota en el panel de nombres y lo exporta en el CSV.
+
+### El CTR, una entrada que el encargo no pedía
+
+Sin CTR no se puede pasar de clics a impresiones ni calcular con CPM: son dos de las salidas
+pedidas. Está como campo visible y editable, no escondido en una constante.
+
 ## Detalles que importan
 
 - **Google no devuelve el nombre de la campaña por ValueTrack**, solo su identificador. Por eso en
@@ -80,3 +120,7 @@ npm run build
 |---|---|
 | ![Escritorio](capturas/01-desktop.png) | ![Móvil](capturas/02-mobile.png) |
 | ![Generación en lote](capturas/03-accion.png) | |
+
+En `capturas/prueba-real/` hay nueve capturas más, tomadas contra la app publicada: el constructor
+de convención, los tres niveles, el aviso de truncado, las UTM de Meta y de Google, el lote, la
+calculadora y el semáforo en rojo.

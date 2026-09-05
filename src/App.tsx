@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Copy, Download, FilePlus2, Files, RotateCcw, Trash2 } from 'lucide-react'
-import { type Bloque, type Convencion, NIVELES, NOMBRE_PLATAFORMA } from './tipos'
+import { Calculator, Copy, Download, FilePlus2, Files, RotateCcw, Tags, Trash2 } from 'lucide-react'
+import { type Bloque, type Convencion, type Escenario, NIVELES, NOMBRE_PLATAFORMA } from './tipos'
 import { generarTodos, moverBloque, nuevoId } from './nomenclatura'
 import { cargar, estadoInicial, guardar, type EstadoGuardado } from './almacen'
 import { csvDeNombres, descargarCsv, nombreArchivo } from './lote'
 import { type ModoUtm } from './utm'
+import { calcular, dinero, escenarioPorDefecto } from './presupuesto'
+import { PanelEscenario, PanelResultados } from './componentes/PanelPresupuesto'
 import { ListaBloques, bloqueNuevo } from './componentes/ListaBloques'
 import { PanelAjustes } from './componentes/PanelAjustes'
 import { PanelLote } from './componentes/PanelLote'
@@ -30,6 +32,7 @@ function convencionNueva(): Convencion {
     urlBase: '',
     utmSource: 'facebook',
     utmMedium: 'paid_social',
+    presupuesto: escenarioPorDefecto(),
     bloques: base,
   }
 }
@@ -37,6 +40,7 @@ function convencionNueva(): Convencion {
 export default function App() {
   const [estado, setEstado] = useState<EstadoGuardado>(() => cargar())
   const [modoUtm, setModoUtm] = useState<ModoUtm>('fijo')
+  const [pestana, setPestana] = useState<'nombres' | 'presupuesto'>('nombres')
   const [confirmandoBorrado, setConfirmandoBorrado] = useState(false)
   const [puedeGuardar, setPuedeGuardar] = useState(true)
 
@@ -60,6 +64,44 @@ export default function App() {
 
   function cambiarBloque(id: string, parcial: Partial<Bloque>) {
     actualizar({ bloques: convencion.bloques.map((b) => (b.id === id ? { ...b, ...parcial } : b)) })
+  }
+
+  const presupuesto = useMemo(() => calcular(convencion.presupuesto), [convencion.presupuesto])
+
+  function cambiarEscenario(parcial: Partial<Escenario>) {
+    actualizar({ presupuesto: { ...convencion.presupuesto, ...parcial } })
+  }
+
+  /**
+   * Pasa el presupuesto al nomenclador: deja el importe como un bloque mas del
+   * nombre y anota a que campana quedo asociado.
+   */
+  function asociarPresupuesto() {
+    if (!presupuesto.valido) return
+    const importe = Math.round(presupuesto.inversionMensual.valor)
+    const valor = `${importe}${convencion.presupuesto.moneda}`
+    const existente = convencion.bloques.find((b) => b.nombre === 'Presupuesto')
+    const bloques = existente
+      ? convencion.bloques.map((b) => (b.id === existente.id ? { ...b, valor } : b))
+      : [
+          ...convencion.bloques,
+          {
+            id: nuevoId(),
+            nombre: 'Presupuesto',
+            nivel: 'campana' as const,
+            clave: false,
+            catalogo: [],
+            valor,
+          },
+        ]
+    actualizar({
+      bloques,
+      presupuesto: {
+        ...convencion.presupuesto,
+        campanaAsociada: generarTodos({ ...convencion, bloques }).campana.texto,
+      },
+    })
+    setPestana('nombres')
   }
 
   function seleccionar(id: string) {
@@ -174,6 +216,34 @@ export default function App() {
         </div>
       </header>
 
+      <nav className="border-b border-borde bg-panel" aria-label="Módulos">
+        <div className="mx-auto flex max-w-[1600px] gap-1 px-3 sm:px-4">
+          {(
+            [
+              ['nombres', 'Nomenclatura', Tags],
+              ['presupuesto', 'Presupuesto', Calculator],
+            ] as const
+          ).map(([id, texto, Icono]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={pestana === id}
+              data-testid={`pestana-${id}`}
+              className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-bold transition-colors ${
+                pestana === id
+                  ? 'border-ambar text-ambar'
+                  : 'border-transparent text-tenue hover:text-tinta'
+              }`}
+              onClick={() => setPestana(id)}
+            >
+              <Icono size={14} aria-hidden />
+              {texto}
+            </button>
+          ))}
+        </div>
+      </nav>
+
       {!puedeGuardar && (
         <p className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-4">
           <span className="block rounded-md border border-ambar bg-[#241C0C] px-3 py-2 text-xs text-ambarSuave">
@@ -195,18 +265,35 @@ export default function App() {
             />
           </label>
 
-          <PanelAjustes convencion={convencion} onCambiar={actualizar} />
+          {pestana === 'nombres' ? (
+            <>
+              <PanelAjustes convencion={convencion} onCambiar={actualizar} />
 
-          <ListaBloques
-            convencion={convencion}
-            onCambiarBloque={cambiarBloque}
-            onMover={(id, delta) => actualizar({ bloques: moverBloque(convencion, id, delta) })}
-            onBorrar={(id) => actualizar({ bloques: convencion.bloques.filter((b) => b.id !== id) })}
-            onAnadir={() => actualizar({ bloques: [...convencion.bloques, bloqueNuevo()] })}
-          />
+              <ListaBloques
+                convencion={convencion}
+                onCambiarBloque={cambiarBloque}
+                onMover={(id, delta) => actualizar({ bloques: moverBloque(convencion, id, delta) })}
+                onBorrar={(id) =>
+                  actualizar({ bloques: convencion.bloques.filter((b) => b.id !== id) })
+                }
+                onAnadir={() => actualizar({ bloques: [...convencion.bloques, bloqueNuevo()] })}
+              />
+            </>
+          ) : (
+            <PanelEscenario escenario={convencion.presupuesto} onCambiar={cambiarEscenario} />
+          )}
         </div>
 
         <div className="space-y-3">
+          {pestana === 'presupuesto' ? (
+            <PanelResultados
+              escenario={convencion.presupuesto}
+              resultado={presupuesto}
+              nombreCampana={nombres.campana.texto}
+              onAsociar={asociarPresupuesto}
+            />
+          ) : (
+            <>
           <section className="tarjeta p-3">
             <header className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-xs font-bold uppercase tracking-wider text-tenue">
@@ -229,6 +316,29 @@ export default function App() {
                 </button>
               </div>
             </header>
+
+            {convencion.presupuesto.campanaAsociada && presupuesto.valido && (
+              <p
+                className="mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-lima bg-[#14210F] px-2.5 py-2 text-xs text-tinta"
+                data-testid="tira-presupuesto"
+              >
+                <Calculator size={13} className="shrink-0 text-lima" aria-hidden />
+                <span>
+                  Presupuesto asociado:{' '}
+                  <strong className="font-mono text-lima">
+                    {dinero(presupuesto.inversionMensual.valor, convencion.presupuesto.moneda)}
+                  </strong>{' '}
+                  al mes ·{' '}
+                  <strong className="font-mono text-lima">
+                    {dinero(presupuesto.inversionDiaria.valor, convencion.presupuesto.moneda)}
+                  </strong>{' '}
+                  al día · coste máximo por resultado{' '}
+                  <strong className="font-mono text-lima">
+                    {dinero(presupuesto.cpaMaximo.valor, convencion.presupuesto.moneda)}
+                  </strong>
+                </span>
+              </p>
+            )}
 
             {totalAvisos > 0 && (
               <p className="mb-2.5 rounded-md border border-ambar bg-[#241C0C] px-2.5 py-2 text-xs text-ambarSuave">
@@ -262,6 +372,8 @@ export default function App() {
           />
 
           <PanelLote convencion={convencion} modoUtm={modoUtm} />
+            </>
+          )}
         </div>
       </main>
 

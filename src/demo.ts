@@ -1,4 +1,5 @@
-import { type Bloque, type Convencion, type NivelId, type OpcionBloque } from './tipos'
+import { type Bloque, type Convencion, type Escenario, type NivelId, type OpcionBloque } from './tipos'
+import { referenciasPorDefecto } from './presupuesto'
 
 function bloque(
   id: string,
@@ -35,6 +36,20 @@ export function convencionesDemo(): Convencion[] {
       urlBase: 'https://www.auroradental.es/promocion-ortodoncia',
       utmSource: 'facebook',
       utmMedium: 'paid_social',
+      presupuesto: {
+        tipoResultado: 'leads',
+        metaMensual: 40,
+        ticket: 320,
+        margen: 55,
+        tasaConversion: 3.2,
+        ctr: 0.9,
+        modeloCoste: 'cpc',
+        cpc: 0.96,
+        cpm: 8.4,
+        moneda: 'EUR',
+        referencias: referenciasPorDefecto(),
+        referenciaActiva: 'lead-form',
+      } satisfies Escenario,
       bloques: [
         bloque('b-cliente', 'Cliente', 'campana', true, 'AURORA', [
           ['Aurora Dental', 'AURORA'],
@@ -110,6 +125,20 @@ export function convencionesDemo(): Convencion[] {
       urlBase: 'https://nordicfit.com/planes',
       utmSource: 'google',
       utmMedium: 'cpc',
+      presupuesto: {
+        tipoResultado: 'ventas',
+        metaMensual: 120,
+        ticket: 89,
+        margen: 42,
+        tasaConversion: 2.4,
+        ctr: 4.5,
+        modeloCoste: 'cpc',
+        cpc: 0.72,
+        cpm: 32,
+        moneda: 'EUR',
+        referencias: referenciasPorDefecto(),
+        referenciaActiva: 'venta-ecom',
+      } satisfies Escenario,
       bloques: [
         bloque('g-cuenta', 'Cuenta', 'campana', true, 'nordicfit', [
           ['Nordic Fit', 'nordicfit'],
@@ -163,6 +192,23 @@ export function convencionesDemo(): Convencion[] {
       urlBase: 'https://casaverde.co/reforma-cocinas',
       utmSource: 'facebook',
       utmMedium: 'paid_social',
+      presupuesto: {
+        tipoResultado: 'leads',
+        metaMensual: 60,
+        ticket: 210000,
+        margen: 32,
+        tasaConversion: 4.1,
+        ctr: 1.2,
+        modeloCoste: 'cpc',
+        cpc: 1750,
+        cpm: 14000,
+        moneda: 'COP',
+        referencias: [
+          { id: 'lead-wa', etiqueta: 'Lead por WhatsApp', min: 18000, max: 75000 },
+          { id: 'lead-form', etiqueta: 'Lead por formulario', min: 30000, max: 120000 },
+        ],
+        referenciaActiva: 'lead-wa',
+      } satisfies Escenario,
       bloques: [
         bloque('m-cliente', 'Cliente', 'campana', true, 'CASAVERDE', [
           ['Casa Verde', 'CASAVERDE'],

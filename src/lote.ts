@@ -1,5 +1,6 @@
 import { type Convencion, type NivelId, type NombreGenerado, NIVELES, NOMBRE_NIVEL_CORTO } from './tipos'
 import { generarTodos } from './nomenclatura'
+import { calcular, dinero } from './presupuesto'
 import { cadenaConsulta, parametrosUtm, urlConUtm, type ModoUtm } from './utm'
 
 /** Tope de seguridad: por encima de esto ya no es un lote, es un incendio. */
@@ -84,6 +85,8 @@ const CABECERA = [
   'oculto_al_corte',
   'aviso',
   'url_con_utm',
+  'inversion_mensual',
+  'coste_por_resultado',
 ]
 
 function filasDeNombres(
@@ -93,6 +96,11 @@ function filasDeNombres(
   modoUtm: ModoUtm,
 ): string[][] {
   const url = urlConUtm(convencion.urlBase, parametrosUtm(convencion, nombres, modoUtm))
+  // Solo si el presupuesto se paso al nomenclador: si no, las columnas van vacias.
+  const p = convencion.presupuesto
+  const calculo = p.campanaAsociada ? calcular(p) : null
+  const inversion = calculo?.valido ? dinero(calculo.inversionMensual.valor, p.moneda) : ''
+  const cpa = calculo?.valido ? dinero(calculo.cpaProyectado.valor, p.moneda) : ''
   return NIVELES.map((nivel) => {
     const n = nombres[nivel]
     return [
@@ -105,6 +113,8 @@ function filasDeNombres(
       descripcionAvisos(n),
       // La URL es la misma para los tres niveles: solo se escribe en la fila del anuncio.
       nivel === 'anuncio' ? url : '',
+      nivel === 'campana' ? inversion : '',
+      nivel === 'campana' ? cpa : '',
     ]
   })
 }

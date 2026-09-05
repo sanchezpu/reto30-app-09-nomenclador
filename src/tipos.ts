@@ -57,6 +57,8 @@ export interface Convencion {
   urlBase: string
   utmSource: string
   utmMedium: string
+  /** Escenario de presupuesto del cliente, guardado junto a la convencion. */
+  presupuesto: Escenario
 }
 
 /** Un trozo del nombre generado, con su posicion exacta. */
@@ -87,4 +89,82 @@ export interface NombreGenerado {
   visible: string
   oculto: string
   avisos: AvisoTruncado[]
+}
+
+// --- Calculadora de presupuesto -----------------------------------------
+
+export type TipoResultado = 'ventas' | 'leads'
+export type ModeloCoste = 'cpc' | 'cpm'
+export type Moneda = 'EUR' | 'USD' | 'COP'
+
+export const NOMBRE_RESULTADO: Record<TipoResultado, { singular: string; plural: string }> = {
+  ventas: { singular: 'venta', plural: 'ventas' },
+  leads: { singular: 'lead', plural: 'leads' },
+}
+
+/**
+ * Rango de coste por resultado que el usuario espera en su operacion.
+ * NO es un dato de la plataforma: ni Meta ni Google publican esto.
+ */
+export interface RangoReferencia {
+  id: string
+  etiqueta: string
+  min: number
+  max: number
+}
+
+export interface Escenario {
+  tipoResultado: TipoResultado
+  metaMensual: number
+  ticket: number
+  /** Porcentaje, 0-100. */
+  margen: number
+  /** Porcentaje, 0-100. */
+  tasaConversion: number
+  /** Porcentaje, 0-100. Necesario para estimar impresiones y para el CPM. */
+  ctr: number
+  modeloCoste: ModeloCoste
+  cpc: number
+  cpm: number
+  moneda: Moneda
+  referencias: RangoReferencia[]
+  referenciaActiva: string
+  /** Nombre de campana al que se paso el presupuesto, si se hizo. */
+  campanaAsociada?: string
+}
+
+export type Luz = 'verde' | 'ambar' | 'rojo'
+
+/** Un numero de la salida con la formula que lo produjo, ya con valores. */
+export interface Magnitud {
+  valor: number
+  formula: string
+}
+
+export interface Diagnostico {
+  luz: Luz
+  titulo: string
+  detalle: string
+}
+
+export interface ResultadoPresupuesto {
+  valido: boolean
+  faltan: string[]
+  clics: Magnitud
+  impresiones: Magnitud
+  conversiones: Magnitud
+  inversionMensual: Magnitud
+  inversionDiaria: Magnitud
+  ingresos: Magnitud
+  margenBruto: Magnitud
+  beneficio: Magnitud
+  cpaProyectado: Magnitud
+  cpaMaximo: Magnitud
+  roasEquilibrio: Magnitud
+  roasProyectado: Magnitud
+  rentabilidad: Diagnostico
+  realismo: Diagnostico
+  semaforo: Luz
+  /** Que habria que cambiar para que los numeros cuadren. */
+  ajustes: { ticket: number; margen: number; conversion: number } | null
 }

@@ -1,5 +1,6 @@
 import { type Convencion } from './tipos'
 import { convencionesDemo } from './demo'
+import { escenarioPorDefecto } from './presupuesto'
 
 const CLAVE = 'nomenclador.estado.v1'
 
@@ -25,9 +26,10 @@ export function cargar(): EstadoGuardado {
     if (!Array.isArray(datos.convenciones) || datos.convenciones.length === 0) {
       return estadoInicial()
     }
-    const convenciones = datos.convenciones.filter(
-      (c) => c && typeof c.id === 'string' && Array.isArray(c.bloques),
-    )
+    const convenciones = datos.convenciones
+      .filter((c) => c && typeof c.id === 'string' && Array.isArray(c.bloques))
+      // Lo guardado antes de que existiera la calculadora no trae escenario.
+      .map((c) => (c.presupuesto ? c : { ...c, presupuesto: escenarioPorDefecto() }))
     if (convenciones.length === 0) return estadoInicial()
     const activaId = convenciones.some((c) => c.id === datos.activaId)
       ? (datos.activaId as string)
