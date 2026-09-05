@@ -466,8 +466,18 @@ export function PanelResultados({
                   {m(e.ticket)} a <strong className="text-ambar">{m(r.ajustes.ticket)}</strong>
                 </li>
                 <li>
-                  Subir el margen del {porcentaje(e.margen, 0)} al{' '}
-                  <strong className="text-ambar">{porcentaje(r.ajustes.margen, 0)}</strong>
+                  {r.ajustes.margen > 100 ? (
+                    <>
+                      Por margen no hay salida: haría falta un{' '}
+                      <strong className="text-rojo">{porcentaje(r.ajustes.margen, 0)}</strong>, y el
+                      margen no pasa del 100 %
+                    </>
+                  ) : (
+                    <>
+                      Subir el margen del {porcentaje(e.margen, 0)} al{' '}
+                      <strong className="text-ambar">{porcentaje(r.ajustes.margen, 0)}</strong>
+                    </>
+                  )}
                 </li>
                 <li>
                   Subir la conversión del {porcentaje(e.tasaConversion)} al{' '}
