@@ -38,10 +38,16 @@ export function cargar(): EstadoGuardado {
   }
 }
 
-export function guardar(estado: EstadoGuardado): void {
+/**
+ * Devuelve false si el navegador no deja guardar (modo privado, cuota llena,
+ * almacenamiento bloqueado). La app sigue funcionando en memoria, pero hay que
+ * decirlo: perder el trabajo en silencio es peor que no guardarlo.
+ */
+export function guardar(estado: EstadoGuardado): boolean {
   try {
     localStorage.setItem(CLAVE, JSON.stringify(estado))
+    return true
   } catch {
-    // Modo privado o cuota llena: la app sigue funcionando en memoria.
+    return false
   }
 }

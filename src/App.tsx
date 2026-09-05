@@ -38,9 +38,10 @@ export default function App() {
   const [estado, setEstado] = useState<EstadoGuardado>(() => cargar())
   const [modoUtm, setModoUtm] = useState<ModoUtm>('fijo')
   const [confirmandoBorrado, setConfirmandoBorrado] = useState(false)
+  const [puedeGuardar, setPuedeGuardar] = useState(true)
 
   useEffect(() => {
-    guardar(estado)
+    setPuedeGuardar(guardar(estado))
   }, [estado])
 
   const convencion =
@@ -172,6 +173,16 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {!puedeGuardar && (
+        <p className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-4">
+          <span className="block rounded-md border border-ambar bg-[#241C0C] px-3 py-2 text-xs text-ambarSuave">
+            Este navegador no permite guardar datos, así que las convenciones se perderán al cerrar
+            la pestaña. Suele pasar en ventanas privadas o con el almacenamiento del sitio
+            bloqueado. Puedes seguir trabajando y exportar el CSV antes de salir.
+          </span>
+        </p>
+      )}
 
       <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-3 px-3 py-3 sm:px-4 lg:grid-cols-[minmax(0,430px)_minmax(0,1fr)]">
         <div className="space-y-3 lg:sticky lg:top-[60px] lg:max-h-[calc(100vh-72px)] lg:overflow-y-auto lg:pr-1">
